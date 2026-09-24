@@ -278,6 +278,28 @@ body.unfurl #cover .skyline{opacity:0}
   opacity:.8;
 }
 
+/* ====== 音乐开关 ====== */
+#musicBtn{
+  position:fixed; top:calc(env(safe-area-inset-top, 0px) + 12px); right:12px; z-index:70;
+  width:42px; height:42px; border-radius:50%;
+  background:rgba(248,242,226,.92); border:1px solid rgba(160,58,40,.5);
+  color:var(--zhu); font-family:var(--f-head); font-size:19px;
+  display:none; align-items:center; justify-content:center;
+  cursor:pointer; box-shadow:0 2px 8px rgba(60,45,20,.2);
+}
+#musicBtn.show{display:flex}
+#musicBtn .note{line-height:1; transform:translateY(-1px)}
+#musicBtn.playing{animation:spin 7s linear infinite}
+#musicBtn.playing::after{
+  content:""; position:absolute; right:-2px; top:-2px; width:9px; height:9px;
+  border-radius:50%; background:var(--zhu); border:1.5px solid #f8f2e2;
+}
+#musicBtn.paused::before{
+  content:""; position:absolute; width:26px; height:1.5px; background:var(--zhu);
+  transform:rotate(-45deg);
+}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+
 /* ====== 灯箱 ====== */
 #lightbox{
   position:fixed; inset:0; z-index:80; background:rgba(24,20,14,.92);
@@ -372,6 +394,10 @@ body.unfurl #cover .skyline{opacity:0}
   </div>
   <div class="rod"></div>
 </div>
+
+<!-- 音乐开关 -->
+<button id="musicBtn" type="button" aria-label="音乐开关" title="回梦游仙 · 骆集益"><span class="note">樂</span></button>
+<audio id="bgm" src="assets/bgm.mp3" loop preload="auto"></audio>
 
 <!-- 灯箱 -->
 <div id="lightbox">
@@ -557,8 +583,22 @@ DAYS.forEach((d, i) => {
 
 /* 开卷 */
 const cover = document.getElementById('cover');
+const bgm = document.getElementById('bgm');
+const musicBtn = document.getElementById('musicBtn');
+bgm.volume = 0.6;
+
+bgm.addEventListener('error', () => { musicBtn.classList.remove('show'); });
+bgm.addEventListener('play', () => { musicBtn.classList.add('playing'); musicBtn.classList.remove('paused'); });
+bgm.addEventListener('pause', () => { musicBtn.classList.remove('playing'); musicBtn.classList.add('paused'); });
+
+musicBtn.addEventListener('click', () => {
+  if (bgm.paused) { bgm.play().catch(() => {}); } else { bgm.pause(); }
+});
+
 document.getElementById('openBtn').addEventListener('click', () => {
   document.body.classList.add('unfurl');
+  musicBtn.classList.add('show');
+  bgm.play().catch(() => { musicBtn.classList.add('paused'); });
   setTimeout(() => {
     cover.remove();
     document.body.classList.remove('locked');
